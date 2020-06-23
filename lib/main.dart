@@ -1,12 +1,67 @@
 import 'package:flutter/material.dart';
 
+import './models/meal.dart';
+import './dummy_data.dart';
+import './screens/filters_screen.dart';
 import './screens/meal_details_screen.dart';
 import './screens/tabs_screen.dart';
 import './screens/category_meals_screen.dart';
 
 void main() => runApp(MyApp());
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  Map<String, bool> filterData = {
+    'gluten': false,
+    'lactose': false,
+    'vegetarian': false,
+    'vegan': false
+  };
+  List<Meal> availableMeals = DUMMY_MEALS;
+  List<Meal> favoriteMeals = [];
+
+  _updateFilters(Map<String, bool> updatedFilters) {
+    setState(() {
+      filterData = updatedFilters;
+      availableMeals = DUMMY_MEALS.where((meal) {
+        if (filterData['gluten'] && !meal.isGlutenFree) {
+          return false;
+        }
+        if (filterData['lactose'] && !meal.isLactoseFree) {
+          return false;
+        }
+        if (filterData['vegetarian'] && !meal.isVegetarian) {
+          return false;
+        }
+        if (filterData['vegan'] && !meal.isVegan) {
+          return false;
+        }
+        return true;
+      }).toList();
+    });
+  }
+
+  _toggelFavoriteMeal(String mealId) {
+    final mealIndex = favoriteMeals.indexWhere((meal) => meal.id == mealId);
+    if (mealIndex >= 0) {
+      setState(() {
+        favoriteMeals.removeAt(mealIndex);
+      });
+    } else {
+      setState(() {
+        favoriteMeals.add(DUMMY_MEALS.firstWhere((meal) => meal.id == mealId));
+      });
+    }
+  }
+
+  _isFavorite(mealId) {
+    return favoriteMeals.any((meal) => meal.id == mealId);
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -38,9 +93,13 @@ class MyApp extends StatelessWidget {
       // home: CategoriesScreen(),
       initialRoute: '/', //default '/'
       routes: {
-        '/': (ctx) => TabsScreen(),
-        CategoryMealsScreen.routName: (ctx) => CategoryMealsScreen(),
-        MealDetailsScreen.routName: (ctx) => MealDetailsScreen(),
+        '/': (ctx) => TabsScreen(favoriteMeals),
+        CategoryMealsScreen.routName: (ctx) =>
+            CategoryMealsScreen(availableMeals),
+        MealDetailsScreen.routName: (ctx) =>
+            MealDetailsScreen(_toggelFavoriteMeal, _isFavorite),
+        FiltersScreen.routeName: (ctx) =>
+            FiltersScreen(filterData, _updateFilters),
       },
     );
   }

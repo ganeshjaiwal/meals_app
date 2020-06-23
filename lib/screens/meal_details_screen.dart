@@ -4,8 +4,10 @@ import '../models/meal.dart';
 import '../dummy_data.dart';
 
 class MealDetailsScreen extends StatelessWidget {
+  final Function toggelFavoriteMeal;
+  final Function _isFavorite;
   static const routName = 'meal-details';
-  const MealDetailsScreen({Key key}) : super(key: key);
+  const MealDetailsScreen(this.toggelFavoriteMeal, this._isFavorite);
 
   Widget buildHeaderOfMeal(Meal meal) {
     return Container(
@@ -327,6 +329,13 @@ class MealDetailsScreen extends StatelessWidget {
             Image.asset('assets/images/healty-food.jpg'),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(_isFavorite(mealId) ? Icons.star : Icons.star_border),
+        backgroundColor: Theme.of(context).primaryColor,
+        onPressed: () {
+          toggelFavoriteMeal(mealId);
+        },
       ),
     );
   }
